@@ -6,13 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect, text
 
-from app.auth import router as auth_router
-from app.gallery import (
+from app.routes.auth import router as auth_router
+from app.routes.gallery import (
     MEDIA_DIRECTORY,
     ensure_media_directory,
     router as gallery_router,
 )
-from app.users import router as users_router
+from app.routes.users import router as users_router
 from app.database import Base, engine
 from app import models  # noqa: F401
 

@@ -4,8 +4,8 @@ import uuid
 from fastapi import UploadFile
 from PIL import Image
 
-from app import gallery
-from app.models import Category, GalleryImage
+from app.routes import gallery
+from app.models.gallery import GalleryImage
 
 
 def png_file() -> tuple[str, bytes, str]:
@@ -103,7 +103,9 @@ def test_listing_is_public_paginated_and_can_filter_by_category(client, db):
 
 def test_cannot_delete_category_with_images(client, db):
     category = create_category(client)
-    db.add(GalleryImage(category_id=uuid.UUID(category["id"]), filename="protected.webp"))
+    db.add(
+        GalleryImage(category_id=uuid.UUID(category["id"]), filename="protected.webp")
+    )
     db.commit()
 
     response = client.delete(f"/gallery/categories/{category['id']}")
@@ -112,7 +114,11 @@ def test_cannot_delete_category_with_images(client, db):
 
 def test_save_as_webp_rejects_unsupported_content_type(tmp_path, monkeypatch):
     monkeypatch.setattr(gallery, "MEDIA_DIRECTORY", tmp_path)
-    upload = UploadFile(filename="text.txt", file=io.BytesIO(b"hello"), headers={"content-type": "text/plain"})
+    upload = UploadFile(
+        filename="text.txt",
+        file=io.BytesIO(b"hello"),
+        headers={"content-type": "text/plain"},
+    )
     try:
         gallery._save_as_webp(upload)
     except Exception as exc:

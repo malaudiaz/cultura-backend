@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import CurrentUser, require_role
-from app.models import User
+from app.models.users import User
 from app.roles import Role
 from app.schemas import RoleUpdate, UserResponse
 
@@ -40,7 +40,9 @@ def update_role(
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     if user.id == administrator.id and data.role != Role.ADMIN:
-        raise HTTPException(status_code=400, detail="No puedes retirar tu propio rol de administrador")
+        raise HTTPException(
+            status_code=400, detail="No puedes retirar tu propio rol de administrador"
+        )
 
     user.role = data.role.value
     db.commit()

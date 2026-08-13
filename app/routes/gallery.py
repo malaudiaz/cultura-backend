@@ -27,7 +27,9 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.dependencies import require_role
-from app.models import Category, GalleryImage, User
+from app.models.users import User
+from app.models.categories import Category
+from app.models.gallery import GalleryImage
 from app.roles import Role
 from app.schemas import (
     CategoryCreate,
@@ -75,7 +77,9 @@ def _image_response(image: GalleryImage, request: Request) -> GalleryImageRespon
 
 def _save_as_webp(upload: UploadFile) -> str:
     if upload.content_type not in SUPPORTED_CONTENT_TYPES:
-        raise HTTPException(status_code=415, detail="Solo se admiten imágenes JPEG, PNG o WebP")
+        raise HTTPException(
+            status_code=415, detail="Solo se admiten imágenes JPEG, PNG o WebP"
+        )
 
     try:
         content = upload.file.read()
@@ -89,7 +93,9 @@ def _save_as_webp(upload: UploadFile) -> str:
             converted.save(path, format="WEBP", quality=80, method=6)
             return filename
     except (UnidentifiedImageError, OSError, ValueError) as exc:
-        raise HTTPException(status_code=422, detail="El archivo no es una imagen válida") from exc
+        raise HTTPException(
+            status_code=422, detail="El archivo no es una imagen válida"
+        ) from exc
     finally:
         upload.file.seek(0)
 
@@ -113,11 +119,21 @@ def _video_duration_seconds(path: Path) -> float:
             timeout=15,
         )
         metadata = json.loads(result.stdout)
-        if not any(stream.get("codec_type") == "video" for stream in metadata["streams"]):
+        if not any(
+            stream.get("codec_type") == "video" for stream in metadata["streams"]
+        ):
             raise ValueError("No contiene una pista de video")
         return float(metadata["format"]["duration"])
-    except (FileNotFoundError, subprocess.SubprocessError, ValueError, KeyError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=422, detail="El archivo no es un video MP4 válido") from exc
+    except (
+        FileNotFoundError,
+        subprocess.SubprocessError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+    ) as exc:
+        raise HTTPException(
+            status_code=422, detail="El archivo no es un video MP4 válido"
+        ) from exc
 
 
 def _save_promotional_video(upload: UploadFile) -> tuple[str, float]:
@@ -128,7 +144,9 @@ def _save_promotional_video(upload: UploadFile) -> tuple[str, float]:
     size = upload.file.tell()
     upload.file.seek(0)
     if not MIN_VIDEO_SIZE_BYTES <= size <= MAX_VIDEO_SIZE_BYTES:
-        raise HTTPException(status_code=422, detail="El video debe pesar entre 3 y 8 MB")
+        raise HTTPException(
+            status_code=422, detail="El video debe pesar entre 3 y 8 MB"
+        )
 
     filename = f"{uuid.uuid4()}.mp4"
     path = MEDIA_DIRECTORY / filename
@@ -137,7 +155,9 @@ def _save_promotional_video(upload: UploadFile) -> tuple[str, float]:
             shutil.copyfileobj(upload.file, destination)
         duration = _video_duration_seconds(path)
         if not MIN_VIDEO_DURATION_SECONDS <= duration <= MAX_VIDEO_DURATION_SECONDS:
-            raise HTTPException(status_code=422, detail="El video debe durar entre 15 y 30 segundos")
+            raise HTTPException(
+                status_code=422, detail="El video debe durar entre 15 y 30 segundos"
+            )
         return filename, duration
     except Exception:
         path.unlink(missing_ok=True)
@@ -158,7 +178,9 @@ def list_categories(db: DbSession) -> list[Category]:
     return list(db.scalars(select(Category).order_by(Category.name)))
 
 
-@router.post("/categories", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/categories", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED
+)
 def create_category(data: CategoryCreate, db: DbSession, _: Manager) -> Category:
     category = Category(name=data.name)
     db.add(category)
@@ -166,13 +188,17 @@ def create_category(data: CategoryCreate, db: DbSession, _: Manager) -> Category
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Ya existe una categoría con ese nombre") from exc
+        raise HTTPException(
+            status_code=409, detail="Ya existe una categoría con ese nombre"
+        ) from exc
     db.refresh(category)
     return category
 
 
 @router.patch("/categories/{category_id}", response_model=CategoryResponse)
-def update_category(category_id: uuid.UUID, data: CategoryCreate, db: DbSession, _: Manager) -> Category:
+def update_category(
+    category_id: uuid.UUID, data: CategoryCreate, db: DbSession, _: Manager
+) -> Category:
     category = db.get(Category, category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
@@ -181,7 +207,9 @@ def update_category(category_id: uuid.UUID, data: CategoryCreate, db: DbSession,
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Ya existe una categoría con ese nombre") from exc
+        raise HTTPException(
+            status_code=409, detail="Ya existe una categoría con ese nombre"
+        ) from exc
     db.refresh(category)
     return category
 
@@ -191,13 +219,23 @@ def delete_category(category_id: uuid.UUID, db: DbSession, _: Manager) -> None:
     category = db.get(Category, category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
-    if db.scalar(select(func.count()).select_from(GalleryImage).where(GalleryImage.category_id == category_id)):
-        raise HTTPException(status_code=409, detail="No se puede eliminar una categoría con imágenes")
+    if db.scalar(
+        select(func.count())
+        .select_from(GalleryImage)
+        .where(GalleryImage.category_id == category_id)
+    ):
+        raise HTTPException(
+            status_code=409, detail="No se puede eliminar una categoría con imágenes"
+        )
     db.delete(category)
     db.commit()
 
 
-@router.post("/images", response_model=list[GalleryImageResponse], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/images",
+    response_model=list[GalleryImageResponse],
+    status_code=status.HTTP_201_CREATED,
+)
 def upload_images(
     request: Request,
     category_id: Annotated[uuid.UUID, Form()],
@@ -249,7 +287,9 @@ def list_images(
     category_id: uuid.UUID | None = None,
 ) -> GalleryImagePage:
     filters = [] if category_id is None else [GalleryImage.category_id == category_id]
-    total = db.scalar(select(func.count()).select_from(GalleryImage).where(*filters)) or 0
+    total = (
+        db.scalar(select(func.count()).select_from(GalleryImage).where(*filters)) or 0
+    )
     images = list(
         db.scalars(
             select(GalleryImage)

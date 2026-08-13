@@ -14,7 +14,7 @@ os.environ["IMAGE_STORAGE_PATH"] = str(TEST_MEDIA)
 from app.database import Base, SessionLocal, engine  # noqa: E402
 from app.dependencies import get_current_user  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import User  # noqa: E402
+from app.models.users import User  # noqa: E402
 from app.roles import Role  # noqa: E402
 
 
