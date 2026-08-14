@@ -10,9 +10,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && addgroup --system app && adduser --system --ingroup app app
 
-COPY requirements.txt .
+COPY requirements.txt requirements-dev.txt .
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements-dev.txt
 
 COPY --chown=app:app app ./app
 RUN mkdir -p /app/media && chown -R app:app /app

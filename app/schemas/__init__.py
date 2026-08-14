@@ -11,6 +11,21 @@ from app.schemas.gallery import (
     GalleryImagePage,
     GalleryImageResponse,
 )
+from app.schemas.news import (
+    NewsCreate,
+    NewsPage,
+    NewsPublish,
+    NewsResponse,
+    NewsReview,
+    NewsRevisionResponse,
+    NewsSectionCreate,
+    NewsSectionResponse,
+    NewsSectionUpdate,
+    NewsUpdate,
+    TagCreate,
+    TagResponse,
+    TagUpdate,
+)
 from app.schemas.users import RoleUpdate, UserResponse
 
 __all__ = [
@@ -21,7 +36,20 @@ __all__ = [
     "GalleryImageResponse",
     "LocalLogin",
     "LocalRegister",
+    "NewsCreate",
+    "NewsPage",
+    "NewsPublish",
+    "NewsResponse",
+    "NewsReview",
+    "NewsRevisionResponse",
+    "NewsSectionCreate",
+    "NewsSectionResponse",
+    "NewsSectionUpdate",
+    "NewsUpdate",
     "RoleUpdate",
     "SocialToken",
+    "TagCreate",
+    "TagResponse",
+    "TagUpdate",
     "UserResponse",
 ]

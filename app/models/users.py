@@ -34,3 +34,9 @@ class User(Base):
     uploaded_images: Mapped[list["GalleryImage"]] = relationship(
         "GalleryImage", back_populates="uploaded_by"
     )
+    authored_news: Mapped[list["News"]] = relationship(
+        "News", foreign_keys="News.author_id", back_populates="author"
+    )
+    edited_news: Mapped[list["News"]] = relationship(
+        "News", foreign_keys="News.editor_id", back_populates="editor"
+    )

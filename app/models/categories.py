@@ -21,3 +21,4 @@ class Category(Base):
     images: Mapped[list["GalleryImage"]] = relationship(
         "GalleryImage", back_populates="category"
     )
+    news: Mapped[list["News"]] = relationship("News", back_populates="category")

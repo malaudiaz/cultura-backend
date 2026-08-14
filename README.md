@@ -30,6 +30,13 @@ La API accede a PostgreSQL dentro de la red de Compose mediante `db:5432`.
 Desde el host, PostgreSQL se publica en el puerto definido por `POSTGRES_PORT`
 (por defecto `5233`), por ejemplo `localhost:5233`.
 
+## Migraciones y semilla
+
+Aplica el esquema con `alembic upgrade head`. Después, ejecuta
+`python -m app.seed` para crear datos de desarrollo idempotentes (usuarios,
+categoría, etiquetas y una noticia). Configura `SEED_ADMIN_PASSWORD` para
+cambiar la contraseña predeterminada `change-me`.
+
 ## Autenticación
 
 Configura en `.env` una clave `JWT_SECRET` larga y aleatoria. Para el acceso
@@ -96,3 +103,16 @@ También se admiten videos promocionales MP4 en la misma carga. Deben durar de
 15 a 30 segundos y pesar de 3 a 8 MB; se validan con `ffprobe` y se conservan
 en su formato original bajo `/media/<archivo>.mp4`. Cada elemento devuelve
 `media_type` (`image` o `video`) y, para videos, `duration_seconds`.
+
+## Noticias
+
+Las noticias publicadas se consultan mediante `GET /news` y
+`GET /news/slug/{slug}`. Los roles `administrador`, `editor` y `redactor`
+pueden crear y editar noticias; el autor puede enviarlas a revisión con
+`POST /news/{news_id}/submit`. Los roles `administrador` y `editor` pueden
+aprobar o rechazar (`POST /news/{news_id}/review`) y publicar
+(`POST /news/{news_id}/publish`).
+
+Las secciones se gestionan con `POST`, `PATCH` y `DELETE` bajo
+`/news/{news_id}/sections`. Las etiquetas se listan en `GET /news/tags` y las
+gestionan administradores y editores mediante `POST`, `PATCH` y `DELETE`.
