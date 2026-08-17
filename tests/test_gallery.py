@@ -4,7 +4,7 @@ import uuid
 from fastapi import UploadFile
 from PIL import Image
 
-from app.routes import gallery
+from app.services import gallery
 from app.models.gallery import GalleryImage
 
 
@@ -61,7 +61,7 @@ def test_upload_video_requires_promotional_size_and_duration(client, monkeypatch
     )
     assert too_small.status_code == 422
 
-    monkeypatch.setattr(gallery, "_video_duration_seconds", lambda _: 20.0)
+    monkeypatch.setattr(gallery, "video_duration_seconds", lambda _: 20.0)
     response = client.post(
         "/api/v1/gallery/images",
         data={"category_id": category["id"]},
@@ -120,7 +120,7 @@ def test_save_as_webp_rejects_unsupported_content_type(tmp_path, monkeypatch):
         headers={"content-type": "text/plain"},
     )
     try:
-        gallery._save_as_webp(upload)
+        gallery.save_as_webp(upload)
     except Exception as exc:
         assert exc.status_code == 415
     else:

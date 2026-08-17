@@ -8,13 +8,10 @@ from sqlalchemy import text
 
 from app.routes.auth import router as auth_router
 from app.routes.categories import router as categories_router
-from app.routes.gallery import (
-    MEDIA_DIRECTORY,
-    ensure_media_directory,
-    router as gallery_router,
-)
+from app.routes.gallery import router as gallery_router
 from app.routes.news import router as news_router
 from app.routes.users import router as users_router
+from app.services.gallery import MEDIA_DIRECTORY, ensure_media_directory
 from app.database import engine
 
 

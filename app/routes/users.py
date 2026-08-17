@@ -1,8 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -10,10 +9,12 @@ from app.dependencies import CurrentUser, require_role
 from app.models.users import User
 from app.roles import Role
 from app.schemas import RoleUpdate, UserResponse
+from app.services import users as users_service
 
 
 router = APIRouter(prefix="/users", tags=["usuarios"])
 DbSession = Annotated[Session, Depends(get_db)]
+Administrator = Annotated[User, Depends(require_role(Role.ADMIN))]
 
 
 @router.get("/me", response_model=UserResponse)
@@ -22,29 +23,10 @@ def me(user: CurrentUser) -> User:
 
 
 @router.get("", response_model=list[UserResponse])
-def list_users(
-    db: DbSession,
-    _: Annotated[User, Depends(require_role(Role.ADMIN))],
-) -> list[User]:
-    return list(db.scalars(select(User).order_by(User.created_at.desc())))
+def list_users(db: DbSession, _: Administrator) -> list[User]:
+    return users_service.list_users(db)
 
 
 @router.patch("/{user_id}/role", response_model=UserResponse)
-def update_role(
-    user_id: uuid.UUID,
-    data: RoleUpdate,
-    db: DbSession,
-    administrator: Annotated[User, Depends(require_role(Role.ADMIN))],
-) -> User:
-    user = db.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    if user.id == administrator.id and data.role != Role.ADMIN:
-        raise HTTPException(
-            status_code=400, detail="No puedes retirar tu propio rol de administrador"
-        )
-
-    user.role = data.role.value
-    db.commit()
-    db.refresh(user)
-    return user
+def update_role(user_id: uuid.UUID, data: RoleUpdate, db: DbSession, administrator: Administrator) -> User:
+    return users_service.update_role(user_id, data, db, administrator)
