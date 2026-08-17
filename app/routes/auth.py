@@ -13,7 +13,6 @@ from app.providers import SocialProfile, verify_facebook_token, verify_google_to
 from app.schemas import AuthResponse, LocalLogin, LocalRegister, SocialToken
 from app.security import create_access_token, hash_password, verify_password
 
-
 router = APIRouter(prefix="/auth", tags=["autenticación"])
 DbSession = Annotated[Session, Depends(get_db)]
 

@@ -30,7 +30,6 @@ from app.schemas import (
     TagUpdate,
 )
 
-
 router = APIRouter(prefix="/news", tags=["news"])
 DbSession = Annotated[Session, Depends(get_db)]
 Writer = Annotated[User, Depends(require_role(Role.ADMIN, Role.EDITOR, Role.WRITER))]
@@ -72,8 +71,7 @@ def _response(news: News) -> NewsResponse:
         ],
         tags=[TagResponse.model_validate(link.tag) for link in news.tag_links],
         revisions=[
-            NewsRevisionResponse.model_validate(revision)
-            for revision in news.revisions
+            NewsRevisionResponse.model_validate(revision) for revision in news.revisions
         ],
     )
 
@@ -92,9 +90,7 @@ def _ensure_owner_or_editor(news: News, user: User) -> None:
 
 def _set_tags(db: Session, news: News, tag_ids: list[uuid.UUID]) -> None:
     tags = (
-        list(db.scalars(select(Tag).where(Tag.id.in_(set(tag_ids)))))
-        if tag_ids
-        else []
+        list(db.scalars(select(Tag).where(Tag.id.in_(set(tag_ids))))) if tag_ids else []
     )
     if len(tags) != len(set(tag_ids)):
         raise HTTPException(status_code=422, detail="Una o más etiquetas no existen")

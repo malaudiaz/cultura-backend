@@ -14,7 +14,6 @@ from app.models.users import User
 from app.roles import Role
 from app.schemas import CategoryCreate, CategoryResponse
 
-
 router = APIRouter(prefix="/categories", tags=["category"])
 DbSession = Annotated[Session, Depends(get_db)]
 Manager = Annotated[User, Depends(require_role(Role.ADMIN, Role.EDITOR))]
