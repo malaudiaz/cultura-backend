@@ -49,12 +49,14 @@ FACEBOOK_APP_SECRET=tu_app_secret
 CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
 
+Los endpoints de la API se versionan mediante URI bajo el prefijo `/api/v1`.
+
 Endpoints disponibles:
 
-- `POST /auth/register`: registro local con `email`, `name` y `password`.
-- `POST /auth/login`: acceso local con `email` y `password`.
-- `POST /auth/google`: registro o acceso con `{ "token": "ID_TOKEN" }`.
-- `POST /auth/facebook`: registro o acceso con `{ "token": "ACCESS_TOKEN" }`.
+- `POST /api/v1/auth/register`: registro local con `email`, `name` y `password`.
+- `POST /api/v1/auth/login`: acceso local con `email` y `password`.
+- `POST /api/v1/auth/google`: registro o acceso con `{ "token": "ID_TOKEN" }`.
+- `POST /api/v1/auth/facebook`: registro o acceso con `{ "token": "ACCESS_TOKEN" }`.
 
 Los cuatro endpoints devuelven un JWT en `access_token`. El frontend debe
 obtener el ID token de Google o el access token de Facebook mediante los SDK
@@ -68,9 +70,9 @@ Todo usuario nuevo recibe el rol `usuario`. Los roles disponibles son
 
 Rutas protegidas:
 
-- `GET /users/me`: devuelve el usuario autenticado y su rol.
-- `GET /users`: lista usuarios; requiere el rol `administrador`.
-- `PATCH /users/{user_id}/role`: cambia un rol; requiere el rol
+- `GET /api/v1/users/me`: devuelve el usuario autenticado y su rol.
+- `GET /api/v1/users`: lista usuarios; requiere el rol `administrador`.
+- `PATCH /api/v1/users/{user_id}/role`: cambia un rol; requiere el rol
   `administrador`. Cuerpo: `{ "role": "editor" }`.
 
 Envía el JWT en las rutas protegidas mediante la cabecera
@@ -85,18 +87,18 @@ por defecto `/app/media`).
 
 Rutas públicas:
 
-- `GET /gallery/categories`: lista categorías.
-- `GET /gallery/images?page=1&category_id=<uuid>`: lista imágenes, con filtro
+- `GET /api/v1/categories`: lista categorías.
+- `GET /api/v1/gallery/images?page=1&category_id=<uuid>`: lista imágenes, con filtro
   de categoría opcional y 10 resultados por página.
 
 Los roles `administrador` y `editor` pueden crear, renombrar y borrar
 categorías, además de borrar imágenes. Los roles `administrador`, `editor` y
-`redactor` pueden cargar imágenes o videos con `POST /gallery/images`
+`redactor` pueden cargar imágenes o videos con `POST /api/v1/gallery/images`
 (formulario con `category_id` y uno o más campos `files`). Una categoría con
 imágenes no se puede eliminar.
 
 Cada imagen registra el usuario autenticado que la cargó. Las respuestas de
-`POST /gallery/images` y `GET /gallery/images` incluyen `uploaded_by_id` y
+`POST /api/v1/gallery/images` y `GET /api/v1/gallery/images` incluyen `uploaded_by_id` y
 `uploaded_by_name`.
 
 También se admiten videos promocionales MP4 en la misma carga. Deben durar de
@@ -106,13 +108,13 @@ en su formato original bajo `/media/<archivo>.mp4`. Cada elemento devuelve
 
 ## Noticias
 
-Las noticias publicadas se consultan mediante `GET /news` y
-`GET /news/slug/{slug}`. Los roles `administrador`, `editor` y `redactor`
+Las noticias publicadas se consultan mediante `GET /api/v1/news` y
+`GET /api/v1/news/slug/{slug}`. Los roles `administrador`, `editor` y `redactor`
 pueden crear y editar noticias; el autor puede enviarlas a revisión con
-`POST /news/{news_id}/submit`. Los roles `administrador` y `editor` pueden
-aprobar o rechazar (`POST /news/{news_id}/review`) y publicar
-(`POST /news/{news_id}/publish`).
+`POST /api/v1/news/{news_id}/submit`. Los roles `administrador` y `editor` pueden
+aprobar o rechazar (`POST /api/v1/news/{news_id}/review`) y publicar
+(`POST /api/v1/news/{news_id}/publish`).
 
 Las secciones se gestionan con `POST`, `PATCH` y `DELETE` bajo
-`/news/{news_id}/sections`. Las etiquetas se listan en `GET /news/tags` y las
+`/api/v1/news/{news_id}/sections`. Las etiquetas se listan en `GET /api/v1/news/tags` y las
 gestionan administradores y editores mediante `POST`, `PATCH` y `DELETE`.

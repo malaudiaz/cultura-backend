@@ -22,22 +22,15 @@ from fastapi import (
 )
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.dependencies import require_role
-from app.models.users import User
 from app.models.categories import Category
 from app.models.gallery import GalleryImage
+from app.models.users import User
 from app.roles import Role
-from app.schemas import (
-    CategoryCreate,
-    CategoryResponse,
-    GalleryImagePage,
-    GalleryImageResponse,
-)
-
+from app.schemas import GalleryImagePage, GalleryImageResponse
 
 router = APIRouter(prefix="/gallery", tags=["galería"])
 logger = logging.getLogger(__name__)
@@ -171,64 +164,6 @@ def _save_media(upload: UploadFile) -> tuple[str, str, float | None]:
         filename, duration = _save_promotional_video(upload)
         return filename, "video", duration
     return _save_as_webp(upload), "image", None
-
-
-@router.get("/categories", response_model=list[CategoryResponse])
-def list_categories(db: DbSession) -> list[Category]:
-    return list(db.scalars(select(Category).order_by(Category.name)))
-
-
-@router.post(
-    "/categories", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED
-)
-def create_category(data: CategoryCreate, db: DbSession, _: Manager) -> Category:
-    category = Category(name=data.name)
-    db.add(category)
-    try:
-        db.commit()
-    except IntegrityError as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=409, detail="Ya existe una categoría con ese nombre"
-        ) from exc
-    db.refresh(category)
-    return category
-
-
-@router.patch("/categories/{category_id}", response_model=CategoryResponse)
-def update_category(
-    category_id: uuid.UUID, data: CategoryCreate, db: DbSession, _: Manager
-) -> Category:
-    category = db.get(Category, category_id)
-    if not category:
-        raise HTTPException(status_code=404, detail="Categoría no encontrada")
-    category.name = data.name
-    try:
-        db.commit()
-    except IntegrityError as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=409, detail="Ya existe una categoría con ese nombre"
-        ) from exc
-    db.refresh(category)
-    return category
-
-
-@router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(category_id: uuid.UUID, db: DbSession, _: Manager) -> None:
-    category = db.get(Category, category_id)
-    if not category:
-        raise HTTPException(status_code=404, detail="Categoría no encontrada")
-    if db.scalar(
-        select(func.count())
-        .select_from(GalleryImage)
-        .where(GalleryImage.category_id == category_id)
-    ):
-        raise HTTPException(
-            status_code=409, detail="No se puede eliminar una categoría con imágenes"
-        )
-    db.delete(category)
-    db.commit()
 
 
 @router.post(
