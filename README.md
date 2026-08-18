@@ -32,10 +32,17 @@ Desde el host, PostgreSQL se publica en el puerto definido por `POSTGRES_PORT`
 
 ## Migraciones y semilla
 
-Aplica el esquema con `alembic upgrade head`. Después, ejecuta
-`python -m app.seed` para crear datos de desarrollo idempotentes (usuarios,
-categoría, etiquetas y una noticia). Configura `SEED_ADMIN_PASSWORD` para
-cambiar la contraseña predeterminada `change-me`.
+Ejecuta las tareas de administración dentro del servicio `api`, para que usen la
+configuración de PostgreSQL proporcionada por Compose:
+
+```bash
+docker-compose exec api alembic upgrade head
+docker-compose exec api python -m app.seed
+```
+
+La semilla crea datos de desarrollo idempotentes (usuarios, categoría, etiquetas
+y una noticia). Configura `SEED_ADMIN_PASSWORD` para cambiar la contraseña
+predeterminada `change-me`.
 
 ## Autenticación
 
