@@ -44,6 +44,19 @@ La semilla crea datos de desarrollo idempotentes (usuarios, categoría, etiqueta
 y una noticia). Configura `SEED_ADMIN_PASSWORD` para cambiar la contraseña
 predeterminada `change-me`.
 
+## Depuración con VS Code y Docker
+
+Para iniciar la API en modo depuración, usa la configuración adicional:
+
+```bash
+docker-compose -f compose.yaml -f compose.debug.yaml up --build
+```
+
+La API espera una conexión del depurador en el puerto `5678`. En VS Code, inicia
+la configuración **FastAPI: adjuntar a Docker** y usa breakpoints normalmente.
+El archivo `compose.debug.yaml` monta el código fuente local, por lo que debes
+reiniciar la sesión de depuración después de modificarlo.
+
 ## Autenticación
 
 Configura en `.env` una clave `JWT_SECRET` larga y aleatoria. Para el acceso
